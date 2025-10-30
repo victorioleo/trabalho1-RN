@@ -6,6 +6,7 @@ This verifies that:
 2. Each coarse label has exactly 5 fine labels
 3. The mapping is consistent
 """
+from collections import Counter
 from cifar100_labels import (
     CIFAR100_FINE_TO_COARSE,
     COARSE_LABELS,
@@ -33,7 +34,6 @@ def test_label_mapping():
     
     # Test 3: Each coarse label has exactly 5 fine labels
     print("\n3. Checking each coarse label has 5 fine labels...")
-    from collections import Counter
     coarse_counts = Counter(CIFAR100_FINE_TO_COARSE.values())
     for coarse_id in range(20):
         count = coarse_counts[coarse_id]

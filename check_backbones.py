@@ -56,13 +56,13 @@ def main():
     
     try:
         check_backbone('mobilevitv2_050', 'MobileViT v2 (50% width)')
-    except:
-        print("\nmobilevitv2_050: Not available in this timm version")
+    except (RuntimeError, ValueError, KeyError) as e:
+        print(f"\nmobilevitv2_050: Not available in this timm version ({type(e).__name__})")
     
     try:
         check_backbone('tf_efficientnet_lite0', 'EfficientNet Lite 0')
-    except:
-        print("\ntf_efficientnet_lite0: Not available or error")
+    except (RuntimeError, ValueError, KeyError) as e:
+        print(f"\ntf_efficientnet_lite0: Not available or error ({type(e).__name__})")
     
     print("\n" + "=" * 70)
     print("SUMMARY")
