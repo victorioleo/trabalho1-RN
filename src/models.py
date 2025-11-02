@@ -13,8 +13,13 @@ class CIFAR100SuperclassClassifier(nn.Module):
     def __init__(self, backbone_name="mobilenetv3_small_100", num_classes=20, pretrained=False):
         super().__init__()
         self.backbone = timm.create_model(backbone_name, pretrained=pretrained, num_classes=0)
-        # num_classes=0 remove o classificador padrão
-        num_features = self.backbone.num_features
+        
+        # Obtém o número correto de features APÓS criar o modelo
+        self.backbone.eval()  # Coloca em eval para evitar erro de BatchNorm
+        with torch.no_grad():
+            dummy_input = torch.randn(1, 3, 32, 32)
+            num_features = self.backbone(dummy_input).shape[1]
+        
         self.classifier = nn.Linear(num_features, num_classes)
     
     def forward(self, x):
@@ -27,7 +32,12 @@ class CIFAR100FineClassifier(nn.Module):
     def __init__(self, backbone_name="mobilenetv3_small_100", num_classes=100, pretrained=False):
         super().__init__()
         self.backbone = timm.create_model(backbone_name, pretrained=pretrained, num_classes=0)
-        num_features = self.backbone.num_features
+        
+        self.backbone.eval()
+        with torch.no_grad():
+            dummy_input = torch.randn(1, 3, 32, 32)
+            num_features = self.backbone(dummy_input).shape[1]
+        
         self.classifier = nn.Linear(num_features, num_classes)
     
     def forward(self, x):
@@ -40,9 +50,13 @@ class CIFAR100MultiHead(nn.Module):
     def __init__(self, backbone_name="mobilenetv3_small_100", num_coarse=20, num_fine=100, pretrained=False):
         super().__init__()
         self.backbone = timm.create_model(backbone_name, pretrained=pretrained, num_classes=0)
-        num_features = self.backbone.num_features
         
-        # Duas MLPs separadas (não apenas Linear)
+        self.backbone.eval()
+        with torch.no_grad():
+            dummy_input = torch.randn(1, 3, 32, 32)
+            num_features = self.backbone(dummy_input).shape[1]
+        
+        # Duas MLPs separadas (conforme especificação do trabalho)
         # MLP para superclasses
         self.head_coarse = nn.Sequential(
             nn.Linear(num_features, 256),
@@ -92,6 +106,7 @@ if __name__ == "__main__":
         
         # Testa forward pass
         x = torch.randn(2, 3, 32, 32)
+        model.eval()
         if task == "multihead":
             out_coarse, out_fine = model(x)
             print(f"  out_coarse shape: {out_coarse.shape}, out_fine shape: {out_fine.shape}")
